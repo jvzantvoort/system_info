@@ -43,10 +43,11 @@ import (
 	////  "github.com/opencontainers/selinux/go-selinux"
 	"github.com/spf13/viper"
 	"log"
+	"log/syslog"
 	"math"
-	"path"
 	"os"
 	"os/user"
+	"path"
 	"runtime"
 )
 
@@ -71,68 +72,109 @@ func getconfiguration(homedir string) config.Configuration {
 
 func main() {
 
+	defer func() {
+		if panicname := recover(); panicname != nil {
+			log.Println("Found error", panicname)
+			os.Exit(1)
+		}
+	}()
+
+	var result bool
+	// Setup log
+	log.SetFlags(0)
+	logwriter, e := syslog.New(syslog.LOG_INFO, "system_info")
+	if e == nil {
+		log.SetOutput(logwriter)
+	}
+
+	// Get user info
 	usrobj, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
 	homedir := usrobj.HomeDir
+	username := usrobj.Username
+	uid := os.Getuid()
+	gid := os.Getgid()
 
 	configuration := getconfiguration(homedir)
 	hostname := input.ShortHostname()
-	uid := os.Getuid()
-	gid := os.Getgid()
 	mem := input.MemTotalKb()
-
-	defer func() {
-		if panicname := recover(); panicname != nil {
-			fmt.Println("Found error", panicname)
-			os.Exit(1)
-		}
-	}()
 
 	ifc := iface.NewIFace(hostname)
 
 	// Hostname header
-	ifc.PrintHeader1(hostname)
-	ifc.PrintHeader2("NUMA")
-	ifc.PrintParamInt("  Processors", runtime.NumCPU())
-	ifc.PrintParamInt("  Memory (GiB)", int(math.Round(mem/1048576.0)))
+	ifc.SetTitle(hostname)
+	ifc.PrintHeader1()
 
-	ifc.PrintHeader2("Datacenter")
-	ifc.PrintParamStr("  Name", configuration.Datacenter.Name)
-	ifc.PrintParamStr("  Client", configuration.Datacenter.Client)
-	ifc.PrintParamStr("  Location", configuration.Datacenter.Location)
+	// NUMA
+	ifc.SetTitle("NUMA")
 
-	ifc.PrintHeader2("Current User")
-	ifc.PrintParamStr("  homedir", homedir)
-	ifc.PrintParamInt("  uid", uid)
-	ifc.PrintParamInt("  gid", gid)
+	ifc.IncIndent()
+	ifc.PrintParamInt("Processors", runtime.NumCPU())
+	ifc.PrintParamInt("Memory (GiB)", int(math.Round(mem/1048576.0)))
+	ifc.DecIndent()
 
-	ifc.PrintHeader2("Filesystems")
+	// DC
+	ifc.SetTitle("Datacenter")
+	ifc.PrintHeader2()
+
+	ifc.IncIndent()
+	ifc.PrintParamStr("Name", configuration.Datacenter.Name)
+	ifc.PrintParamStr("Client", configuration.Datacenter.Client)
+	ifc.PrintParamStr("Location", configuration.Datacenter.Location)
+	ifc.DecIndent()
+
+	// CU
+	ifc.SetTitle("Current User")
+	ifc.PrintHeader2()
+
+	ifc.IncIndent()
+	ifc.PrintParamStr("username", username)
+	ifc.PrintParamStr("homedir", homedir)
+	ifc.PrintParamInt("uid", uid)
+	ifc.PrintParamInt("gid", gid)
+	ifc.DecIndent()
+
+	// Filesystem
+	ifc.SetTitle("Filesystems")
+	ifc.PrintHeader2()
+
+	ifc.IncIndent()
 	for _, fs := range input.Filesystems() {
 		for _, mountPoing := range input.ProcMounts(fs) {
-			ifc.PrintParamStr("  " + mountPoing, fs)
+			ifc.PrintParamStr(mountPoing, fs)
 		}
 	}
-	ifc.PrintHeader2("Config switches")
-	ifc.PrintParamTest("  Security", "enabled", "disabled", configuration.Server.Secure)
+	ifc.DecIndent()
 
-	ifc.PrintHeader2("Tests")
+	// Config
+	ifc.SetTitle("Config switches")
+	ifc.PrintHeader2()
 
-	var result bool
+	ifc.IncIndent()
+	ifc.PrintParamTest("Security", "enabled", "disabled", configuration.Server.Secure)
+	ifc.DecIndent()
 
+	// Tests
+	ifc.SetTitle("Tests")
+	ifc.PrintHeader2()
+
+	ifc.IncIndent()
 	bashrc := path.Join(homedir, ".bashrc")
 	sshdir := path.Join(homedir, ".ssh")
 	sshauth := path.Join(sshdir, "authorized_keys")
 
 	result = apptests.TargetParameters(bashrc, 0644, uid, gid)
-	ifc.PrintParamTest("  bashrc has correct permissions", "yes", "no", result)
+	ifc.PrintParamTest("bashrc has correct permissions", "yes", "no", result)
 
 	result = apptests.TargetParameters(sshdir, 0700, uid, gid)
-	ifc.PrintParamTest("  sshdir has correct permissions", "yes", "no", result)
+	ifc.PrintParamTest("sshdir has correct permissions", "yes", "no", result)
 
 	result = apptests.TargetParameters(sshauth, 0600, uid, gid)
-	ifc.PrintParamTest("  authorized_keys has correct permissions", "yes", "no", result)
+	ifc.PrintParamTest("authorized_keys has correct permissions", "yes", "no", result)
+
+	ifc.DecIndent()
 
 	// ifc.PrintParamTest("  SELinux", "enabled", "disabled", selinux.GetEnabled())
 

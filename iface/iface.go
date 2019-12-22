@@ -37,17 +37,27 @@ package iface
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"log"
 	"os"
 	"strings"
 )
 
 type IFace struct {
 	hostname string
+	title    string
 	uid      int
+	gid      int
+	indent   int
 }
 
 func NewIFace(hostname string) *IFace {
-	retv := IFace{hostname: hostname, uid: os.Getuid()}
+	retv := IFace{
+		hostname: hostname,
+		uid:      os.Getuid(),
+		gid:      os.Getgid(),
+		title:    "empty",
+		indent:   0,
+	}
 	return &retv
 }
 
@@ -58,33 +68,60 @@ func times(str string, n int) string {
 	return strings.Repeat(str, n)
 }
 
+func (ifc *IFace) SetTitle(titlestr string) {
+	ifc.title = titlestr
+}
+
+func (ifc *IFace) SetIndent(indent int) int {
+	ifc.indent = indent
+	return ifc.indent
+}
+
+func (ifc IFace) GetIndent() int {
+	return ifc.indent
+}
+
+func (ifc *IFace) IncIndent() {
+	ifc.indent = ifc.indent + 2
+}
+
+func (ifc *IFace) DecIndent() {
+	if ifc.indent >= 2 {
+		ifc.indent = ifc.indent - 2
+	}
+}
+
 // Header1 wraps `instr` as a H1 header
-func (ifc IFace) Header1(instr string) string {
-	return "\n" + instr + "\n" + strings.Repeat("=", len(instr))
+func (ifc IFace) Header1() string {
+	line := strings.Repeat("=", len(ifc.title))
+	return fmt.Sprintf("\n%s\n%s", ifc.title, line)
 }
 
 // Header2 wraps `instr` as a H2 header
-func (ifc IFace) Header2(instr string) string {
-	return "\n" + instr + "\n" + strings.Repeat("-", len(instr))
+func (ifc IFace) Header2() string {
+	line := strings.Repeat("-", len(ifc.title))
+	return fmt.Sprintf("\n%s\n%s", ifc.title, line)
 }
 
-func (ifc IFace) PrintHeader1(instr string) {
-	fmt.Println(ifc.Header1(instr))
+func (ifc IFace) PrintHeader1() {
+	fmt.Println(ifc.Header1())
 }
 
-func (ifc IFace) PrintHeader2(instr string) {
-	fmt.Println(ifc.Header2(instr))
+func (ifc IFace) PrintHeader2() {
+	fmt.Println(ifc.Header2())
 }
 
 func (ifc IFace) PrintParamInt(paramname string, paramvalue int) {
 	yellow := color.New(color.FgYellow).SprintFunc()
 	intparam := fmt.Sprintf("%-8d", paramvalue)
-	fmt.Printf("%-70s %8s\n", ifc.PadRight(paramname, 70, "."), yellow(intparam))
+	log.Printf("%s/%s: %s", ifc.title, paramname, intparam)
+	fmt.Printf("%s%-68s %8s\n", strings.Repeat(" ", ifc.indent), ifc.PadRight(paramname, 70, "."), yellow(intparam))
 }
 
 func (ifc IFace) PrintParamStr(paramname string, paramvalue string) {
 	yellow := color.New(color.FgYellow).SprintFunc()
-	fmt.Printf("%-70s %8s\n", ifc.PadRight(paramname, 70, "."), yellow(paramvalue))
+	log.Printf("%s/%s: %s", ifc.title, paramname, paramvalue)
+	fmt.Printf("%s%-68s %8s\n", strings.Repeat(" ", ifc.indent), ifc.PadRight(paramname, 70, "."), yellow(paramvalue))
 }
 
 func (ifc IFace) PrintParamTest(paramname string, trueval string, falseval string, testval bool) {
