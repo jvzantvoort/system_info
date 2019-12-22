@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v1
 
     - name: Build
-      run: mkdir -p "$(go env GOBIN)"
+      run: mkdir -p "${HOME}/go/bin"
 
     - name: Get dependencies
       run: |
