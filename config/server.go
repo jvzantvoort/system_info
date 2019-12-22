@@ -1,6 +1,6 @@
 package config
 
 type ServerConfiguration struct {
-	Port int
+	Port   int
 	Secure bool
 }

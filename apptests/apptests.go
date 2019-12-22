@@ -1,9 +1,9 @@
 //          FILE:  tests.go
-// 
+//
 //         USAGE:  tests.go
-// 
+//
 //   DESCRIPTION:  $description
-// 
+//
 //       OPTIONS:  ---
 //  REQUIREMENTS:  ---
 //          BUGS:  ---
@@ -35,22 +35,22 @@
 package apptests
 
 import (
-    "fmt"
-    "os"
-    "log"
-    "syscall"
-    "strconv"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"syscall"
 )
 
 func TargetParameters(targetpath string, mode int, uid int, gid int) bool {
 	retv := true
-	if ! TargetHasPermission(targetpath, mode) {
+	if !TargetHasPermission(targetpath, mode) {
 		retv = false
 	}
-	if ! TargetHasUID(targetpath, uid) {
+	if !TargetHasUID(targetpath, uid) {
 		retv = false
 	}
-	if ! TargetHasGID(targetpath, gid) {
+	if !TargetHasGID(targetpath, gid) {
 		retv = false
 	}
 	return retv
@@ -66,8 +66,8 @@ func TargetHasPermission(targetpath string, mode int) bool {
 	if num == mode {
 		return true
 	} else {
-	return false
-}
+		return false
+	}
 }
 
 func TargetHasUID(targetpath string, uid int) bool {
@@ -97,6 +97,5 @@ func TargetHasGID(targetpath string, gid int) bool {
 		return false
 	}
 }
-
 
 // vim: noexpandtab filetype=go

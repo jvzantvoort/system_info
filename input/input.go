@@ -1,9 +1,9 @@
 //          FILE:  input.go
-// 
+//
 //         USAGE:  input.go
-// 
+//
 //   DESCRIPTION:  $description
-// 
+//
 //       OPTIONS:  ---
 //  REQUIREMENTS:  ---
 //          BUGS:  ---
@@ -44,8 +44,8 @@ import (
 )
 
 const (
-	MEMFILE string = "/proc/meminfo"
-	FSFILE string = "/proc/filesystems"
+	MEMFILE    string = "/proc/meminfo"
+	FSFILE     string = "/proc/filesystems"
 	MOUNTSFILE string = "/proc/mounts"
 )
 
@@ -61,7 +61,7 @@ func ShortHostname() string {
 
 // GetLines gets all the lines of a file and returns them as a slice of
 // strings.
-func GetLines(infile string)(retv []string) {
+func GetLines(infile string) (retv []string) {
 	file, err := os.Open(infile)
 	if err != nil {
 		log.Fatal(err)
@@ -87,7 +87,7 @@ func GetLines(infile string)(retv []string) {
 
 // MemTotalKb returns the total amount of memory found in `/proc/meminfo` in
 // kilobytes.
-func MemTotalKb()(retint float64) {
+func MemTotalKb() (retint float64) {
 	re := regexp.MustCompile(`(MemTotal)\:[ \t]*([0-9]*)[ \t]*kB`)
 	for _, line := range GetLines(MEMFILE) {
 		if re.MatchString(line) {
@@ -100,7 +100,7 @@ func MemTotalKb()(retint float64) {
 }
 
 // Return a list of used filesystems
-func Filesystems()(retv []string) {
+func Filesystems() (retv []string) {
 	re := regexp.MustCompile("nodev")
 	for _, line := range GetLines(FSFILE) {
 		if re.MatchString(line) {
@@ -113,7 +113,7 @@ func Filesystems()(retv []string) {
 }
 
 // Lookup and return mountpoints for a provided filesystem
-func ProcMounts(fs string)(retv []string) {
+func ProcMounts(fs string) (retv []string) {
 	for _, line := range GetLines(MOUNTSFILE) {
 		cols := strings.Split(line, " ")
 		fstype := cols[2]
@@ -123,6 +123,5 @@ func ProcMounts(fs string)(retv []string) {
 	}
 	return
 }
-
 
 // vim: noexpandtab filetype=go

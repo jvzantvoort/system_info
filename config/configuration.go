@@ -3,6 +3,6 @@ package config
 import ()
 
 type Configuration struct {
-	Server ServerConfiguration
+	Server     ServerConfiguration
 	Datacenter DatacenterConfiguration
 }

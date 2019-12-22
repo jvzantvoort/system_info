@@ -1,9 +1,9 @@
 //          FILE:  datacenter.go
-// 
+//
 //         USAGE:  datacenter.go
-// 
+//
 //   DESCRIPTION:  $description
-// 
+//
 //       OPTIONS:  ---
 //  REQUIREMENTS:  ---
 //          BUGS:  ---
@@ -35,8 +35,8 @@
 package config
 
 type DatacenterConfiguration struct {
-	Name string
-	Client string
+	Name     string
+	Client   string
 	Location string
 }
 
