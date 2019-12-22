@@ -25,4 +25,7 @@ jobs:
         fi
 
     - name: Build
+      run: mkdir -p "${GOBIN}"
+
+    - name: Build
       run: go build -v .
