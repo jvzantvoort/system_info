@@ -1,23 +1,28 @@
-name: Go
+name: Main workflow
 on: [push]
 jobs:
+  run:
+    name: Run
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
     steps:
+    - name: Create bin dir
+      run: mkdir -p "${HOME}/go/bin"
 
-    - name: Set up Go 1.13
+    - name: Create src dir
+      run: mkdir -p "${HOME}/go/src"
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Set up Go
       uses: actions/setup-go@v1
       with:
         go-version: 1.13
       id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
-
-    - name: Build
-      run: mkdir -p "${HOME}/go/bin"
 
     - name: Get dependencies
       run: |
