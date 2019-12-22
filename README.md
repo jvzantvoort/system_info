@@ -1,2 +1,17 @@
 # system_info
-Print information for a system (nothing serious, please ignore)
+
+Screwing around with golang. *Not* meant for actual use !!!
+
+
+example ~/sysinfo.yaml:
+
+```
+datacenter:
+  name: JDC
+  client: self
+  location: Eindhoven
+
+server:
+  secure: true
+
+```
